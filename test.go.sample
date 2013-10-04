@@ -1,0 +1,8 @@
+m :=0
+r := 4
+n := DoSomething(m, 0.0, r)
+
+func DoSomething( a int  ,    ra float64 , b  int) int {
+	b = a + b+ 19
+	return ba
+}
