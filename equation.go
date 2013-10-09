@@ -3,16 +3,20 @@ package main
 import (
 	"errors"
 	"strings"
-	"fmt"
+	//"fmt"
 	"bytes"
 )
 
+func IsWhitespace(c uint8) bool {
+	if c == ' ' || c == '\n' || c == '\t' {
+		return true
+	}
+	return false
+}
+
 func IsOperator(c uint8) bool {
-	if c == '+' ||
-	c == '-' ||
-	c == '*' ||
-	c == '/' ||
-	c == '^' {
+	if c == '+' || c == '-' || c == '*' ||
+			c == '/' || c == '^' {
 		return true
 	}
 	return false
@@ -51,17 +55,23 @@ type Token struct {
 }
 
 func GetToken(segment string) (typ byte, name string) {
-	typ = TVariable
-	for i := 0; i < len(segment); i++ {
+	typ = TUnknown
+	i := 0
+	for ; i < len(segment); i++ {
 		if segment[i] == '(' {
 			typ = TFunction
 			name = segment[:i]
 			break
-		} else if !(IsAlpha(segment[i]) || IsNum(segment[i])) {
+		} else if IsWhitespace(segment[i]) || IsOperator(segment[i]) {
+			//!(IsAlpha(segment[i]) || IsNum(segment[i])) {
 			typ = TVariable
 			name = segment[:i]
 			break
 		}
+	}
+	if i == len(segment) {
+		typ = TVariable
+		name = segment[:i]
 	}
 	return
 }
@@ -97,7 +107,6 @@ func Tokenize(input string) []*Token {
 
 	for i := 0; i < len(input); i++ {
 		c := input[i]
-		fmt.Println(string([]byte{c}))
 		if IsNum(c) || c == '.' {
 			buf.WriteByte(input[i])
 		} else {
@@ -112,16 +121,13 @@ func Tokenize(input string) []*Token {
 				t = TRparen
 			} else if IsAlpha(c) {
 				typ, name := GetToken(input[i:])
-				if typ == TUnknown {
-					fmt.Println("Syntax Error!")
-					return nil
-				}
-				i += len(name)
-				t = typ
-				tokens = append(tokens,&Token{t, name})
-				if typ == TFunction {
-					tokens = append(tokens,&Token{TOperator, "F"})
-					i--
+				if typ != TUnknown {
+					i += len(name) - 1
+					t = typ
+					tokens = append(tokens,&Token{t, name})
+					if typ == TFunction {
+						tokens = append(tokens,&Token{TOperator, "F"})
+					}
 				}
 				continue
 			} else {
